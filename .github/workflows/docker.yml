@@ -18,9 +18,10 @@ jobs:
       # Docker build with automatic layer caching
       - uses: boringcache/docker-action@v1
         with:
-          workspace: ${{ github.repository }}
+          workspace: boringcache/actions-demos
           context: .
-          tags: myapp:${{ github.sha }}
+          image: myapp
+          tags: ${{ github.sha }}
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
@@ -39,9 +40,10 @@ jobs:
 
       - uses: boringcache/docker-action@v1
         with:
-          workspace: ${{ github.repository }}
+          workspace: boringcache/actions-demos
           context: .
-          tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          image: ghcr.io/${{ github.repository }}
+          tags: ${{ github.sha }}
           push: true
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
@@ -57,10 +59,11 @@ jobs:
 
       - uses: boringcache/docker-action@v1
         with:
-          workspace: ${{ github.repository }}
+          workspace: boringcache/actions-demos
           context: .
+          image: myapp
+          tags: ${{ github.sha }}
           platforms: linux/amd64,linux/arm64
-          tags: myapp:${{ github.sha }}
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
@@ -72,10 +75,11 @@ jobs:
 
       - uses: boringcache/docker-action@v1
         with:
-          workspace: ${{ github.repository }}
+          workspace: boringcache/actions-demos
           context: .
-          file: Dockerfile.production
-          tags: myapp:${{ github.sha }}
+          image: myapp
+          tags: ${{ github.sha }}
+          dockerfile: Dockerfile.production
           build-args: |
             NODE_ENV=production
             VERSION=${{ github.sha }}
@@ -93,8 +97,9 @@ jobs:
 
       - uses: boringcache/docker-action@v1
         with:
-          workspace: ${{ github.repository }}
+          workspace: boringcache/actions-demos
           context: ./services/${{ matrix.service }}
-          tags: ${{ matrix.service }}:${{ github.sha }}
+          image: ${{ matrix.service }}
+          tags: ${{ github.sha }}
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}

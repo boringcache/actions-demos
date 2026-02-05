@@ -22,6 +22,7 @@ jobs:
       - uses: boringcache/rust-action@v1
         with:
           toolchain: stable
+          workspace: boringcache/actions-demos
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
@@ -38,6 +39,7 @@ jobs:
         with:
           toolchain: nightly
           components: clippy, rustfmt
+          workspace: boringcache/actions-demos
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
@@ -54,6 +56,7 @@ jobs:
       - uses: boringcache/rust-action@v1
         with:
           toolchain: stable
+          workspace: boringcache/actions-demos
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
@@ -73,6 +76,7 @@ jobs:
       - uses: boringcache/rust-action@v1
         with:
           toolchain: ${{ matrix.toolchain }}
+          workspace: boringcache/actions-demos
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
@@ -89,6 +93,7 @@ jobs:
       - uses: boringcache/rust-action@v1
         with:
           toolchain: stable
+          workspace: boringcache/actions-demos
           # Cache is automatically scoped to Cargo.lock hash
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
@@ -106,6 +111,7 @@ jobs:
         with:
           toolchain: stable
           targets: x86_64-unknown-linux-musl
+          workspace: boringcache/actions-demos
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 

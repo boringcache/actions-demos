@@ -12,15 +12,23 @@ jobs:
   # Basic buildctl build
   build:
     runs-on: ubuntu-latest
+    services:
+      buildkit:
+        image: moby/buildkit:latest
+        options: --privileged
+        ports:
+          - 1234:1234
     steps:
       - uses: actions/checkout@v4
 
       # BuildKit build with layer caching via BoringCache
       - uses: boringcache/buildkit-action@v1
         with:
-          workspace: ${{ github.repository }}
+          workspace: boringcache/actions-demos
+          buildkit-host: tcp://localhost:1234
           context: .
-          output: type=docker,name=myapp:${{ github.sha }}
+          image: myapp
+          tags: ${{ github.sha }}
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
@@ -29,28 +37,44 @@ jobs:
   # Build with custom Dockerfile
   custom-dockerfile:
     runs-on: ubuntu-latest
+    services:
+      buildkit:
+        image: moby/buildkit:latest
+        options: --privileged
+        ports:
+          - 1234:1234
     steps:
       - uses: actions/checkout@v4
 
       - uses: boringcache/buildkit-action@v1
         with:
-          workspace: ${{ github.repository }}
+          workspace: boringcache/actions-demos
+          buildkit-host: tcp://localhost:1234
           context: .
           dockerfile: Dockerfile.production
-          output: type=docker,name=myapp:prod
+          image: myapp
+          tags: prod
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
   # Build and export to OCI tarball
   oci-export:
     runs-on: ubuntu-latest
+    services:
+      buildkit:
+        image: moby/buildkit:latest
+        options: --privileged
+        ports:
+          - 1234:1234
     steps:
       - uses: actions/checkout@v4
 
       - uses: boringcache/buildkit-action@v1
         with:
-          workspace: ${{ github.repository }}
+          workspace: boringcache/actions-demos
+          buildkit-host: tcp://localhost:1234
           context: .
+          image: myapp
           output: type=oci,dest=image.tar
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
@@ -60,49 +84,73 @@ jobs:
   # Build with build args and secrets
   advanced:
     runs-on: ubuntu-latest
+    services:
+      buildkit:
+        image: moby/buildkit:latest
+        options: --privileged
+        ports:
+          - 1234:1234
     steps:
       - uses: actions/checkout@v4
 
       - uses: boringcache/buildkit-action@v1
         with:
-          workspace: ${{ github.repository }}
+          workspace: boringcache/actions-demos
+          buildkit-host: tcp://localhost:1234
           context: .
+          image: myapp
+          tags: ${{ github.sha }}
           build-args: |
             NODE_ENV=production
             VERSION=${{ github.sha }}
-          output: type=docker,name=myapp:${{ github.sha }}
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
   # Multi-stage build with target
   multi-stage:
     runs-on: ubuntu-latest
+    services:
+      buildkit:
+        image: moby/buildkit:latest
+        options: --privileged
+        ports:
+          - 1234:1234
     steps:
       - uses: actions/checkout@v4
 
       # Build only the builder stage
       - uses: boringcache/buildkit-action@v1
         with:
-          workspace: ${{ github.repository }}
+          workspace: boringcache/actions-demos
+          buildkit-host: tcp://localhost:1234
           context: .
+          image: myapp-builder
+          tags: ${{ github.sha }}
           target: builder
-          output: type=docker,name=myapp-builder:${{ github.sha }}
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
       # Build the final stage
       - uses: boringcache/buildkit-action@v1
         with:
-          workspace: ${{ github.repository }}
+          workspace: boringcache/actions-demos
+          buildkit-host: tcp://localhost:1234
           context: .
+          image: myapp
+          tags: ${{ github.sha }}
           target: runtime
-          output: type=docker,name=myapp:${{ github.sha }}
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
   # Push to registry
   push:
     runs-on: ubuntu-latest
+    services:
+      buildkit:
+        image: moby/buildkit:latest
+        options: --privileged
+        ports:
+          - 1234:1234
     steps:
       - uses: actions/checkout@v4
 
@@ -115,8 +163,11 @@ jobs:
 
       - uses: boringcache/buildkit-action@v1
         with:
-          workspace: ${{ github.repository }}
+          workspace: boringcache/actions-demos
+          buildkit-host: tcp://localhost:1234
           context: .
-          output: type=image,name=ghcr.io/${{ github.repository }}:${{ github.sha }},push=true
+          image: ghcr.io/${{ github.repository }}
+          tags: ${{ github.sha }}
+          push: true
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
