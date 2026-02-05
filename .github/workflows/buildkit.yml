@@ -12,20 +12,18 @@ jobs:
   # Basic buildctl build
   build:
     runs-on: ubuntu-latest
-    services:
-      buildkit:
-        image: moby/buildkit:latest
-        options: --privileged
-        ports:
-          - 1234:1234
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        id: buildx
 
       # BuildKit build with layer caching via BoringCache
       - uses: boringcache/buildkit-action@v1
         with:
           workspace: boringcache/actions-demos
-          buildkit-host: tcp://localhost:1234
+          buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: myapp
           tags: ${{ github.sha }}
@@ -37,19 +35,17 @@ jobs:
   # Build with custom Dockerfile
   custom-dockerfile:
     runs-on: ubuntu-latest
-    services:
-      buildkit:
-        image: moby/buildkit:latest
-        options: --privileged
-        ports:
-          - 1234:1234
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        id: buildx
 
       - uses: boringcache/buildkit-action@v1
         with:
           workspace: boringcache/actions-demos
-          buildkit-host: tcp://localhost:1234
+          buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           dockerfile: Dockerfile.production
           image: myapp
@@ -60,19 +56,17 @@ jobs:
   # Build and export to OCI tarball
   oci-export:
     runs-on: ubuntu-latest
-    services:
-      buildkit:
-        image: moby/buildkit:latest
-        options: --privileged
-        ports:
-          - 1234:1234
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        id: buildx
 
       - uses: boringcache/buildkit-action@v1
         with:
           workspace: boringcache/actions-demos
-          buildkit-host: tcp://localhost:1234
+          buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: myapp
           output: type=oci,dest=image.tar
@@ -84,19 +78,17 @@ jobs:
   # Build with build args and secrets
   advanced:
     runs-on: ubuntu-latest
-    services:
-      buildkit:
-        image: moby/buildkit:latest
-        options: --privileged
-        ports:
-          - 1234:1234
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        id: buildx
 
       - uses: boringcache/buildkit-action@v1
         with:
           workspace: boringcache/actions-demos
-          buildkit-host: tcp://localhost:1234
+          buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: myapp
           tags: ${{ github.sha }}
@@ -109,20 +101,18 @@ jobs:
   # Multi-stage build with target
   multi-stage:
     runs-on: ubuntu-latest
-    services:
-      buildkit:
-        image: moby/buildkit:latest
-        options: --privileged
-        ports:
-          - 1234:1234
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        id: buildx
 
       # Build only the builder stage
       - uses: boringcache/buildkit-action@v1
         with:
           workspace: boringcache/actions-demos
-          buildkit-host: tcp://localhost:1234
+          buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: myapp-builder
           tags: ${{ github.sha }}
@@ -134,7 +124,7 @@ jobs:
       - uses: boringcache/buildkit-action@v1
         with:
           workspace: boringcache/actions-demos
-          buildkit-host: tcp://localhost:1234
+          buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: myapp
           tags: ${{ github.sha }}
@@ -145,14 +135,12 @@ jobs:
   # Push to registry
   push:
     runs-on: ubuntu-latest
-    services:
-      buildkit:
-        image: moby/buildkit:latest
-        options: --privileged
-        ports:
-          - 1234:1234
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        id: buildx
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -164,7 +152,7 @@ jobs:
       - uses: boringcache/buildkit-action@v1
         with:
           workspace: boringcache/actions-demos
-          buildkit-host: tcp://localhost:1234
+          buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: ghcr.io/${{ github.repository }}
           tags: ${{ github.sha }}
