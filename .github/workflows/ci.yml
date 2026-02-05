@@ -46,7 +46,7 @@ jobs:
       # Workspace format: cleaner syntax for multiple cache entries
       - uses: boringcache/action@v1
         with:
-          workspace: boringcache/actions-demos
+          workspace: boringcache/actions
           entries: |
             deps:node_modules
             build:.next

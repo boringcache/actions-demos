@@ -22,7 +22,7 @@ jobs:
       - uses: boringcache/nodejs-action@v1
         with:
           node-version: '20'
-          workspace: boringcache/actions-demos
+          workspace: boringcache/actions
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
@@ -38,7 +38,7 @@ jobs:
       - uses: boringcache/nodejs-action@v1
         with:
           node-version: '20'
-          workspace: boringcache/actions-demos
+          workspace: boringcache/actions
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
@@ -54,11 +54,11 @@ jobs:
       - uses: boringcache/nodejs-action@v1
         with:
           node-version: '20'
-          workspace: boringcache/actions-demos
+          workspace: boringcache/actions
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
-      - run: corepack enable pnpm
+      - run: npm install -g pnpm
       - run: pnpm install
       - run: pnpm test
 
@@ -74,7 +74,7 @@ jobs:
       - uses: boringcache/nodejs-action@v1
         with:
           node-version: ${{ matrix.node }}
-          workspace: boringcache/actions-demos
+          workspace: boringcache/actions
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 

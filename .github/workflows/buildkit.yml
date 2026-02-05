@@ -22,7 +22,7 @@ jobs:
       # BuildKit build with layer caching via BoringCache
       - uses: boringcache/buildkit-action@v1
         with:
-          workspace: boringcache/actions-demos
+          workspace: boringcache/actions
           buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: myapp
@@ -44,7 +44,7 @@ jobs:
 
       - uses: boringcache/buildkit-action@v1
         with:
-          workspace: boringcache/actions-demos
+          workspace: boringcache/actions
           buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           dockerfile: Dockerfile.production
@@ -65,7 +65,7 @@ jobs:
 
       - uses: boringcache/buildkit-action@v1
         with:
-          workspace: boringcache/actions-demos
+          workspace: boringcache/actions
           buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: myapp
@@ -87,7 +87,7 @@ jobs:
 
       - uses: boringcache/buildkit-action@v1
         with:
-          workspace: boringcache/actions-demos
+          workspace: boringcache/actions
           buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: myapp
@@ -111,7 +111,7 @@ jobs:
       # Build only the builder stage
       - uses: boringcache/buildkit-action@v1
         with:
-          workspace: boringcache/actions-demos
+          workspace: boringcache/actions
           buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: myapp-builder
@@ -123,7 +123,7 @@ jobs:
       # Build the final stage
       - uses: boringcache/buildkit-action@v1
         with:
-          workspace: boringcache/actions-demos
+          workspace: boringcache/actions
           buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: myapp
@@ -155,7 +155,7 @@ jobs:
 
       - uses: boringcache/buildkit-action@v1
         with:
-          workspace: boringcache/actions-demos
+          workspace: boringcache/actions
           buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: ghcr.io/${{ github.repository }}

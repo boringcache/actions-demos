@@ -18,7 +18,7 @@ jobs:
       # Docker build with automatic layer caching
       - uses: boringcache/docker-action@v1
         with:
-          workspace: boringcache/actions-demos
+          workspace: boringcache/actions
           context: .
           image: myapp
           tags: ${{ github.sha }}
@@ -40,7 +40,7 @@ jobs:
 
       - uses: boringcache/docker-action@v1
         with:
-          workspace: boringcache/actions-demos
+          workspace: boringcache/actions
           context: .
           image: ghcr.io/${{ github.repository }}
           tags: ${{ github.sha }}
@@ -59,7 +59,7 @@ jobs:
 
       - uses: boringcache/docker-action@v1
         with:
-          workspace: boringcache/actions-demos
+          workspace: boringcache/actions
           context: .
           image: myapp
           tags: ${{ github.sha }}
@@ -75,7 +75,7 @@ jobs:
 
       - uses: boringcache/docker-action@v1
         with:
-          workspace: boringcache/actions-demos
+          workspace: boringcache/actions
           context: .
           image: myapp
           tags: ${{ github.sha }}
@@ -97,7 +97,7 @@ jobs:
 
       - uses: boringcache/docker-action@v1
         with:
-          workspace: boringcache/actions-demos
+          workspace: boringcache/actions
           context: ./services/${{ matrix.service }}
           image: ${{ matrix.service }}
           tags: ${{ github.sha }}
