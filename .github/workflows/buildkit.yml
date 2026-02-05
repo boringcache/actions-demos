@@ -1,0 +1,122 @@
+# Example: BuildKit daemon with layer caching
+# For advanced Docker builds using buildctl directly
+
+name: BuildKit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # Basic buildctl build
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # BuildKit build with layer caching via BoringCache
+      - uses: boringcache/buildkit-action@v1
+        with:
+          workspace: ${{ github.repository }}
+          context: .
+          output: type=docker,name=myapp:${{ github.sha }}
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: docker images
+
+  # Build with custom Dockerfile
+  custom-dockerfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: boringcache/buildkit-action@v1
+        with:
+          workspace: ${{ github.repository }}
+          context: .
+          dockerfile: Dockerfile.production
+          output: type=docker,name=myapp:prod
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+  # Build and export to OCI tarball
+  oci-export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: boringcache/buildkit-action@v1
+        with:
+          workspace: ${{ github.repository }}
+          context: .
+          output: type=oci,dest=image.tar
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: ls -la image.tar
+
+  # Build with build args and secrets
+  advanced:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: boringcache/buildkit-action@v1
+        with:
+          workspace: ${{ github.repository }}
+          context: .
+          build-args: |
+            NODE_ENV=production
+            VERSION=${{ github.sha }}
+          output: type=docker,name=myapp:${{ github.sha }}
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+  # Multi-stage build with target
+  multi-stage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Build only the builder stage
+      - uses: boringcache/buildkit-action@v1
+        with:
+          workspace: ${{ github.repository }}
+          context: .
+          target: builder
+          output: type=docker,name=myapp-builder:${{ github.sha }}
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      # Build the final stage
+      - uses: boringcache/buildkit-action@v1
+        with:
+          workspace: ${{ github.repository }}
+          context: .
+          target: runtime
+          output: type=docker,name=myapp:${{ github.sha }}
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+  # Push to registry
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: boringcache/buildkit-action@v1
+        with:
+          workspace: ${{ github.repository }}
+          context: .
+          output: type=image,name=ghcr.io/${{ github.repository }}:${{ github.sha }},push=true
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}

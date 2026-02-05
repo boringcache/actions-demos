@@ -1,0 +1,120 @@
+# Example: Granular cache control with save/restore
+# Use this pattern when you need precise control over cache timing
+
+name: Save/Restore Pattern
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # Pattern 1: Conditional install based on cache hit
+  conditional-install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Restore cache first
+      - uses: boringcache/restore@v1
+        id: cache
+        with:
+          workspace: ${{ github.repository }}
+          entries: deps:node_modules
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      # Only install if cache miss
+      - run: npm ci
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - run: npm test
+
+      # Save cache after successful build
+      - uses: boringcache/save@v1
+        if: always()
+        with:
+          workspace: ${{ github.repository }}
+          entries: deps:node_modules
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+  # Pattern 2: Build artifacts shared across jobs
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - run: npm ci
+      - run: npm run build
+
+      # Save build output for other jobs
+      - uses: boringcache/save@v1
+        with:
+          workspace: ${{ github.repository }}
+          entries: build-${{ github.sha }}:dist
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Restore build output from previous job
+      - uses: boringcache/restore@v1
+        with:
+          workspace: ${{ github.repository }}
+          entries: build-${{ github.sha }}:dist
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: ls -la dist/
+      # - run: deploy dist/
+
+  # Pattern 3: actions/cache compatible syntax
+  actions-cache-compat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Restore with actions/cache compatible inputs
+      - uses: boringcache/restore@v1
+        id: cache
+        with:
+          path: |
+            node_modules
+            ~/.npm
+          key: deps-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            deps-${{ runner.os }}-
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: npm ci
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - run: npm test
+
+      # Save with actions/cache compatible inputs
+      - uses: boringcache/save@v1
+        with:
+          path: |
+            node_modules
+            ~/.npm
+          key: deps-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}

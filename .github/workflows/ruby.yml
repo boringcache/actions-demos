@@ -1,0 +1,113 @@
+# Example: Ruby with automatic caching
+# Zero-config Ruby setup with Bundler caching
+
+name: Ruby
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # Zero-config: automatic Ruby setup + caching
+  zero-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Automatically:
+      # - Installs Ruby via mise
+      # - Caches Ruby installation
+      # - Caches gems (vendor/bundle)
+      - uses: boringcache/ruby-action@v1
+        with:
+          ruby-version: '3.3'
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: bundle install
+      - run: bundle exec rake test
+
+  # Rails application
+  rails:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: boringcache/ruby-action@v1
+        with:
+          ruby-version: '3.3'
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: bundle install
+      - run: bin/rails db:setup
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test
+      - run: bin/rails test
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test
+
+  # Matrix: multiple Ruby versions
+  matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby: ['3.1', '3.2', '3.3']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: boringcache/ruby-action@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: ruby --version
+      - run: bundle install
+      - run: bundle exec rake test
+
+  # With bundler-cache disabled (manual control)
+  manual-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: boringcache/ruby-action@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: false  # Disable automatic bundler caching
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      # Manual cache control
+      - uses: boringcache/restore@v1
+        id: gems
+        with:
+          workspace: ${{ github.repository }}
+          entries: gems:vendor/bundle
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: bundle config path vendor/bundle
+      - run: bundle install
+
+      - uses: boringcache/save@v1
+        with:
+          workspace: ${{ github.repository }}
+          entries: gems:vendor/bundle
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}

@@ -1,0 +1,58 @@
+# Example: Drop-in replacement for actions/cache
+# This is the simplest migration path from actions/cache
+
+name: CI with BoringCache
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Drop-in replacement for actions/cache
+      # Just change actions/cache@v4 to boringcache/action@v1
+      - uses: boringcache/action@v1
+        with:
+          path: node_modules
+          key: deps-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            deps-${{ runner.os }}-
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+  # Example with workspace format (recommended for new projects)
+  build-workspace:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Workspace format: cleaner syntax for multiple cache entries
+      - uses: boringcache/action@v1
+        with:
+          workspace: ${{ github.repository }}
+          entries: |
+            deps:node_modules
+            build:.next
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: npm ci
+      - run: npm test
+      - run: npm run build

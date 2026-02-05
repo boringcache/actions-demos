@@ -1,0 +1,95 @@
+# Example: Node.js with automatic caching
+# Zero-config Node.js setup with npm/yarn/pnpm caching
+
+name: Node.js
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # Zero-config: automatic Node.js setup + caching
+  zero-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Automatically:
+      # - Installs Node.js via mise
+      # - Caches Node.js installation
+      # - Caches node_modules
+      - uses: boringcache/nodejs-action@v1
+        with:
+          node-version: '20'
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: npm ci
+      - run: npm test
+
+  # With yarn
+  yarn:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: boringcache/nodejs-action@v1
+        with:
+          node-version: '20'
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn test
+
+  # With pnpm
+  pnpm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: boringcache/nodejs-action@v1
+        with:
+          node-version: '20'
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: corepack enable pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+
+  # Matrix: multiple Node.js versions
+  matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['18', '20', '22']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: boringcache/nodejs-action@v1
+        with:
+          node-version: ${{ matrix.node }}
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: node --version
+      - run: npm ci
+      - run: npm test
+
+  # Custom workspace
+  custom-workspace:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: boringcache/nodejs-action@v1
+        with:
+          node-version: '20'
+          workspace: my-org/my-project  # Custom workspace
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: npm ci
+      - run: npm test

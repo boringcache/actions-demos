@@ -1,0 +1,112 @@
+# Example: Rust with automatic caching
+# Zero-config Rust setup with cargo/target caching
+
+name: Rust
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # Zero-config: automatic Rust setup + caching
+  zero-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Automatically:
+      # - Installs Rust via rustup
+      # - Caches ~/.cargo
+      # - Caches target directory
+      - uses: boringcache/rust-action@v1
+        with:
+          toolchain: stable
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: cargo build
+      - run: cargo test
+
+  # With specific toolchain
+  nightly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: boringcache/rust-action@v1
+        with:
+          toolchain: nightly
+          components: clippy, rustfmt
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: cargo fmt --check
+      - run: cargo clippy -- -D warnings
+      - run: cargo test
+
+  # Release build
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: boringcache/rust-action@v1
+        with:
+          toolchain: stable
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: cargo build --release
+      - run: cargo test --release
+
+  # Matrix: multiple platforms
+  matrix:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        toolchain: [stable, beta]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: boringcache/rust-action@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: rustc --version
+      - run: cargo build
+      - run: cargo test
+
+  # Workspace with multiple crates
+  workspace:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: boringcache/rust-action@v1
+        with:
+          toolchain: stable
+          # Cache is automatically scoped to Cargo.lock hash
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: cargo build --workspace
+      - run: cargo test --workspace
+
+  # Cross-compilation
+  cross-compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: boringcache/rust-action@v1
+        with:
+          toolchain: stable
+          targets: x86_64-unknown-linux-musl
+        env:
+          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+
+      - run: cargo build --target x86_64-unknown-linux-musl
