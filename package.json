@@ -1,0 +1,10 @@
+{
+  "name": "boringcache-actions-demos",
+  "version": "1.0.0",
+  "description": "Demo workflows for BoringCache GitHub Actions",
+  "scripts": {
+    "test": "echo \"Tests passed\"",
+    "build": "mkdir -p dist && echo \"Build complete\" > dist/index.js"
+  },
+  "private": true
+}

@@ -25,7 +25,7 @@ jobs:
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
-  # Build and push to registry
+  # Build and push to registry (disabled in demo - requires package write permissions)
   build-push:
     runs-on: ubuntu-latest
     steps:
@@ -44,7 +44,7 @@ jobs:
           context: .
           image: ghcr.io/${{ github.repository }}
           tags: ${{ github.sha }}
-          push: true
+          push: false  # Set to true when package permissions are configured
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
