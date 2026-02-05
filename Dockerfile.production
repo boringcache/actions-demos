@@ -1,0 +1,12 @@
+# Production Dockerfile for BoringCache Actions demo
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+RUN echo '{"name":"demo-prod","version":"1.0.0"}' > package.json
+RUN echo "Production build" > build-info.txt
+
+ENV NODE_ENV=production
+
+CMD ["cat", "build-info.txt"]
