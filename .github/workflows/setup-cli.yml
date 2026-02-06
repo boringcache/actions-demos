@@ -52,9 +52,8 @@ jobs:
       - name: Restore dependencies
         run: |
           boringcache restore \
-            --workspace ${{ github.repository }} \
-            --tag deps \
-            --path node_modules \
+            ${{ github.repository }} \
+            deps:node_modules \
             || echo "Cache miss, will install"
 
       - run: npm ci
@@ -62,9 +61,8 @@ jobs:
       - name: Save dependencies
         run: |
           boringcache save \
-            --workspace ${{ github.repository }} \
-            --tag deps \
-            --path node_modules
+            ${{ github.repository }} \
+            deps:node_modules
 
   # Matrix build with CLI
   matrix:

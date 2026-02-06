@@ -62,6 +62,8 @@ Separate restore and save steps:
   with:
     workspace: my-org/my-project
     entries: deps:node_modules
+  env:
+    BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
 - run: npm ci
   if: steps.cache.outputs.cache-hit != 'true'
@@ -70,6 +72,8 @@ Separate restore and save steps:
   with:
     workspace: my-org/my-project
     entries: deps:node_modules
+  env:
+    BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 ```
 
 ### Pattern 4: Language-Specific (Zero Config)
@@ -81,16 +85,22 @@ Use language actions for automatic setup + caching:
 - uses: boringcache/nodejs-action@v1
   with:
     node-version: '20'
+  env:
+    BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
 # Ruby
 - uses: boringcache/ruby-action@v1
   with:
     ruby-version: '3.3'
+  env:
+    BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
 # Rust
 - uses: boringcache/rust-action@v1
   with:
     toolchain: stable
+  env:
+    BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 ```
 
 ## Why BoringCache?
