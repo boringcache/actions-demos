@@ -1,4 +1,4 @@
-# BoringCache Actions Demo
+# BoringCache Actions Demos
 
 **Cache once. Reuse everywhere.**
 
