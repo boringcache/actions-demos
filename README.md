@@ -58,7 +58,6 @@ Separate restore and save steps:
 
 ```yaml
 - uses: boringcache/restore@v1
-  id: cache
   with:
     workspace: my-org/my-project
     entries: deps:node_modules
@@ -66,7 +65,6 @@ Separate restore and save steps:
     BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
 - run: npm ci
-  if: steps.cache.outputs.cache-hit != 'true'
 
 - uses: boringcache/save@v1
   with:
