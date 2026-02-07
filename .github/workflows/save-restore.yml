@@ -24,6 +24,7 @@ jobs:
         with:
           workspace: boringcache/actions
           entries: deps:node_modules
+          verbose: true  # Show detailed cache operations
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
@@ -35,6 +36,8 @@ jobs:
         with:
           workspace: boringcache/actions
           entries: deps:node_modules
+          verbose: true
+          exclude: "*.log"  # Exclude log files from cache
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 

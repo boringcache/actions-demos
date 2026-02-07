@@ -29,7 +29,7 @@ jobs:
       - run: cargo build
       - run: cargo test
 
-  # With specific toolchain
+  # With specific toolchain and verbose output
   nightly:
     runs-on: ubuntu-latest
     steps:
@@ -40,6 +40,8 @@ jobs:
           toolchain: nightly
           components: clippy, rustfmt
           workspace: boringcache/actions
+          verbose: true  # Show detailed cache operations
+          exclude: "*.fingerprint"  # Exclude fingerprint files from cache
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 

@@ -54,6 +54,7 @@ jobs:
           boringcache restore \
             ${{ github.repository }} \
             deps:node_modules \
+            --verbose \
             || echo "Cache miss, will install"
 
       - run: npm ci
@@ -62,7 +63,9 @@ jobs:
         run: |
           boringcache save \
             ${{ github.repository }} \
-            deps:node_modules
+            deps:node_modules \
+            --verbose \
+            --exclude "*.log"
 
   # Matrix build with CLI
   matrix:
