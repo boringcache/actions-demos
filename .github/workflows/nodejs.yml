@@ -62,7 +62,7 @@ jobs:
       - run: pnpm install
       - run: pnpm test
 
-  # Matrix: multiple Node.js versions
+  # Matrix: multiple Node.js versions with verbose output
   matrix:
     runs-on: ubuntu-latest
     strategy:
@@ -75,6 +75,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           workspace: boringcache/actions
+          verbose: true  # Show detailed cache operations
         env:
           BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
