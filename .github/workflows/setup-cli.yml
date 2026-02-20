@@ -34,7 +34,7 @@ jobs:
 
       - uses: boringcache/setup-boringcache@v1
         with:
-          version: v1.0.2  # Pin to specific version
+          version: v1.1.0  # Pin to specific version
 
       - run: boringcache --version
 
