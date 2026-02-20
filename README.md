@@ -1,22 +1,20 @@
 # BoringCache Actions Demos
 
-**Cache once. Reuse everywhere.**
-
-This repository demonstrates all BoringCache GitHub Actions with real-world examples.
+Example workflows for every BoringCache GitHub Action.
 
 ## Available Actions
 
 | Action | Description | Example |
 |--------|-------------|---------|
-| [boringcache/action](https://github.com/boringcache/action) | Drop-in replacement for `actions/cache` | [ci.yml](.github/workflows/ci.yml) |
-| [boringcache/save](https://github.com/boringcache/save) | Save cache artifacts | [save-restore.yml](.github/workflows/save-restore.yml) |
-| [boringcache/restore](https://github.com/boringcache/restore) | Restore cache artifacts | [save-restore.yml](.github/workflows/save-restore.yml) |
-| [boringcache/setup-boringcache](https://github.com/boringcache/setup-boringcache) | Install BoringCache CLI | [setup-cli.yml](.github/workflows/setup-cli.yml) |
-| [boringcache/nodejs-action](https://github.com/boringcache/nodejs-action) | Node.js + npm/yarn/pnpm caching | [nodejs.yml](.github/workflows/nodejs.yml) |
-| [boringcache/ruby-action](https://github.com/boringcache/ruby-action) | Ruby + Bundler caching | [ruby.yml](.github/workflows/ruby.yml) |
-| [boringcache/rust-action](https://github.com/boringcache/rust-action) | Rust + Cargo caching | [rust.yml](.github/workflows/rust.yml) |
-| [boringcache/docker-action](https://github.com/boringcache/docker-action) | Docker BuildKit layer caching | [docker.yml](.github/workflows/docker.yml) |
-| [boringcache/buildkit-action](https://github.com/boringcache/buildkit-action) | BuildKit daemon caching | [buildkit.yml](.github/workflows/buildkit.yml) |
+| [boringcache/action](https://github.com/boringcache/action) | Cache any directory (drop-in for `actions/cache`) | [ci.yml](.github/workflows/ci.yml) |
+| [boringcache/save](https://github.com/boringcache/save) | Save directories at a specific workflow point | [save-restore.yml](.github/workflows/save-restore.yml) |
+| [boringcache/restore](https://github.com/boringcache/restore) | Restore directories at a specific workflow point | [save-restore.yml](.github/workflows/save-restore.yml) |
+| [boringcache/setup-boringcache](https://github.com/boringcache/setup-boringcache) | Install the BoringCache CLI | [setup-cli.yml](.github/workflows/setup-cli.yml) |
+| [boringcache/nodejs-action](https://github.com/boringcache/nodejs-action) | Setup Node.js + cache node_modules and build tools | [nodejs.yml](.github/workflows/nodejs.yml) |
+| [boringcache/ruby-action](https://github.com/boringcache/ruby-action) | Setup Ruby + cache Bundler gems | [ruby.yml](.github/workflows/ruby.yml) |
+| [boringcache/rust-action](https://github.com/boringcache/rust-action) | Setup Rust + cache Cargo registry and target | [rust.yml](.github/workflows/rust.yml) |
+| [boringcache/docker-action](https://github.com/boringcache/docker-action) | Cache Docker BuildKit layers via OCI proxy | [docker.yml](.github/workflows/docker.yml) |
+| [boringcache/buildkit-action](https://github.com/boringcache/buildkit-action) | Cache BuildKit layers for raw buildctl builds | [buildkit.yml](.github/workflows/buildkit.yml) |
 
 ## Quick Start
 
@@ -103,10 +101,9 @@ Use language actions for automatic setup + caching:
 
 ## Why BoringCache?
 
-- **Portable caches** - reuse in CI, Docker, and local dev
-- **Content-addressed** - skip uploads for unchanged content
-- **Cross-platform** - Linux, macOS, Windows
-- **Unified caching** - same cache works everywhere
+- **Content-addressed** — identical content is never re-uploaded
+- **Portable** — same cache works in CI, Docker builds, and local dev
+- **Cross-platform** — Linux, macOS, Windows
 
 ## License
 
