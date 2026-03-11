@@ -1,8 +1,12 @@
 # BoringCache Actions Demos
 
-Example workflows for every BoringCache GitHub Action.
+Example workflows for the published BoringCache GitHub Actions.
 
-## Available Actions
+## What this repo is for
+
+Use these workflows as a starting point when you want a working example before you shape the YAML around your own build.
+
+## Available actions
 
 | Action | Description | Example |
 |--------|-------------|---------|
@@ -16,15 +20,15 @@ Example workflows for every BoringCache GitHub Action.
 | [boringcache/docker-action](https://github.com/boringcache/docker-action) | Cache Docker BuildKit layers via OCI proxy | [docker.yml](.github/workflows/docker.yml) |
 | [boringcache/buildkit-action](https://github.com/boringcache/buildkit-action) | Cache BuildKit layers for raw buildctl builds | [buildkit.yml](.github/workflows/buildkit.yml) |
 
-## Quick Start
+## Quick start
 
-1. Get your API token from [boringcache.com](https://boringcache.com)
-2. Add `BORINGCACHE_API_TOKEN` to your repository secrets
+1. Create a restore token and a save token in [boringcache.com](https://boringcache.com)
+2. Add `BORINGCACHE_RESTORE_TOKEN` and `BORINGCACHE_SAVE_TOKEN` to your repository secrets
 3. Copy any workflow from this repo and adapt to your needs
 
-## Usage Patterns
+## Common patterns
 
-### Pattern 1: Drop-in Cache (Simplest)
+### Pattern 1: Drop-in cache
 
 Replace `actions/cache` with `boringcache/action`:
 
@@ -34,10 +38,11 @@ Replace `actions/cache` with `boringcache/action`:
     path: node_modules
     key: deps-${{ hashFiles('package-lock.json') }}
   env:
-    BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+    BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+    BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 ```
 
-### Pattern 2: Workspace Format (Recommended)
+### Pattern 2: Workspace format
 
 Use workspace format for multi-project caching:
 
@@ -47,10 +52,11 @@ Use workspace format for multi-project caching:
     workspace: my-org/my-project
     entries: deps:node_modules,build:.next
   env:
-    BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+    BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+    BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 ```
 
-### Pattern 3: Save/Restore (Granular Control)
+### Pattern 3: Save and restore separately
 
 Separate restore and save steps:
 
@@ -60,7 +66,7 @@ Separate restore and save steps:
     workspace: my-org/my-project
     entries: deps:node_modules
   env:
-    BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+    BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
 
 - run: npm ci
 
@@ -69,10 +75,10 @@ Separate restore and save steps:
     workspace: my-org/my-project
     entries: deps:node_modules
   env:
-    BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+    BORINGCACHE_SAVE_TOKEN: ${{ secrets.BORINGCACHE_SAVE_TOKEN }}
 ```
 
-### Pattern 4: Language-Specific (Zero Config)
+### Pattern 4: Language-specific defaults
 
 Use language actions for automatic setup + caching:
 
@@ -82,24 +88,27 @@ Use language actions for automatic setup + caching:
   with:
     node-version: '20'
   env:
-    BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+    BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+    BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
 # Ruby
 - uses: boringcache/ruby-action@v1
   with:
     ruby-version: '3.3'
   env:
-    BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+    BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+    BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
 # Rust
 - uses: boringcache/rust-action@v1
   with:
     toolchain: stable
   env:
-    BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+    BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+    BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 ```
 
-## Why BoringCache?
+## Why this layout?
 
 - **Content-addressed** — identical content is never re-uploaded
 - **Portable** — same cache works in CI, Docker builds, and local dev
