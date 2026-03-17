@@ -1,5 +1,5 @@
-# Example: Rust with automatic caching
-# Zero-config Rust setup with cargo/target caching
+# Example: Rust with rust-sccache mode
+# Install Rust, cache cargo/target state, and wire sccache through boringcache/one
 
 name: Rust
 
@@ -9,22 +9,23 @@ on:
   pull_request:
 
 jobs:
-  # Zero-config: automatic Rust setup + caching
+  # Automatic Rust setup + caching
   zero-config:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # Automatically:
-      # - Installs Rust via rustup
-      # - Caches ~/.cargo
-      # - Caches target directory
-      - uses: boringcache/rust-action@v1
+      - uses: boringcache/one@v1
         with:
+          setup: none
+          mode: rust-sccache
           toolchain: stable
-          workspace: boringcache/actions
+          workspace: boringcache/actions-demos
+          sccache: true
+          sccache-mode: proxy
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       - run: cargo build
       - run: cargo test
@@ -35,15 +36,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: boringcache/rust-action@v1
+      - uses: boringcache/one@v1
         with:
+          setup: none
+          mode: rust-sccache
           toolchain: nightly
           components: clippy, rustfmt
-          workspace: boringcache/actions
+          workspace: boringcache/actions-demos
+          sccache: true
+          sccache-mode: proxy
           verbose: true  # Show detailed cache operations
           exclude: "*.fingerprint"  # Exclude fingerprint files from cache
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       - run: cargo fmt --check
       - run: cargo clippy -- -D warnings
@@ -55,12 +61,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: boringcache/rust-action@v1
+      - uses: boringcache/one@v1
         with:
+          setup: none
+          mode: rust-sccache
           toolchain: stable
-          workspace: boringcache/actions
+          workspace: boringcache/actions-demos
+          sccache: true
+          sccache-mode: proxy
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       - run: cargo build --release
       - run: cargo test --release
@@ -75,12 +86,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: boringcache/rust-action@v1
+      - uses: boringcache/one@v1
         with:
+          setup: none
+          mode: rust-sccache
           toolchain: ${{ matrix.toolchain }}
-          workspace: boringcache/actions
+          workspace: boringcache/actions-demos
+          sccache: true
+          sccache-mode: proxy
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       - run: rustc --version
       - run: cargo build
@@ -92,13 +108,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: boringcache/rust-action@v1
+      - uses: boringcache/one@v1
         with:
+          setup: none
+          mode: rust-sccache
           toolchain: stable
-          workspace: boringcache/actions
+          workspace: boringcache/actions-demos
+          sccache: true
+          sccache-mode: proxy
           # Cache is automatically scoped to Cargo.lock hash
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       - run: cargo build --workspace
       - run: cargo test --workspace
@@ -112,12 +133,17 @@ jobs:
       - name: Install musl tools
         run: sudo apt-get update && sudo apt-get install -y musl-tools
 
-      - uses: boringcache/rust-action@v1
+      - uses: boringcache/one@v1
         with:
+          setup: none
+          mode: rust-sccache
           toolchain: stable
           targets: x86_64-unknown-linux-musl
-          workspace: boringcache/actions
+          workspace: boringcache/actions-demos
+          sccache: true
+          sccache-mode: proxy
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       - run: cargo build --target x86_64-unknown-linux-musl

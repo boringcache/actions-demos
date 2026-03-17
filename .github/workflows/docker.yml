@@ -1,5 +1,5 @@
-# Example: Docker builds with BuildKit caching
-# Cache Docker layers with BoringCache
+# Example: Docker builds with docker mode
+# Cache Docker layers with boringcache/one
 
 name: Docker
 
@@ -16,15 +16,18 @@ jobs:
       - uses: actions/checkout@v4
 
       # Docker build with automatic layer caching
-      - uses: boringcache/docker-action@v1
+      - uses: boringcache/one@v1
         with:
-          workspace: boringcache/actions
+          setup: none
+          mode: docker
+          workspace: boringcache/actions-demos
           context: .
           image: myapp
           tags: ${{ github.sha }}
           verbose: true  # Show detailed cache operations
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
   # Build and push to registry (disabled in demo - requires package write permissions)
   build-push:
@@ -39,15 +42,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: boringcache/docker-action@v1
+      - uses: boringcache/one@v1
         with:
-          workspace: boringcache/actions
+          setup: none
+          mode: docker
+          workspace: boringcache/actions-demos
           context: .
           image: ghcr.io/${{ github.repository }}
           tags: ${{ github.sha }}
           push: false  # Set to true when package permissions are configured
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
   # Multi-platform build
   multi-platform:
@@ -58,15 +64,19 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - uses: boringcache/docker-action@v1
+      - uses: boringcache/one@v1
         with:
-          workspace: boringcache/actions
+          setup: none
+          mode: docker
+          workspace: boringcache/actions-demos
           context: .
           image: myapp
           tags: ${{ github.sha }}
           platforms: linux/amd64,linux/arm64
+          load: false
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
   # Build with build args
   build-args:
@@ -74,9 +84,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: boringcache/docker-action@v1
+      - uses: boringcache/one@v1
         with:
-          workspace: boringcache/actions
+          setup: none
+          mode: docker
+          workspace: boringcache/actions-demos
           context: .
           image: myapp
           tags: ${{ github.sha }}
@@ -85,7 +97,8 @@ jobs:
             NODE_ENV=production
             VERSION=${{ github.sha }}
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
   # Monorepo: multiple Dockerfiles
   monorepo:
@@ -96,11 +109,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: boringcache/docker-action@v1
+      - uses: boringcache/one@v1
         with:
-          workspace: boringcache/actions
+          setup: none
+          mode: docker
+          workspace: boringcache/actions-demos
           context: ./services/${{ matrix.service }}
           image: ${{ matrix.service }}
           tags: ${{ github.sha }}
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}

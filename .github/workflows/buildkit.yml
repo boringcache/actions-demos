@@ -1,5 +1,5 @@
-# Example: BuildKit daemon with layer caching
-# For advanced Docker builds using buildctl directly
+# Example: BuildKit mode with direct buildctl
+# For advanced Docker builds using boringcache/one in buildkit mode
 
 name: BuildKit
 
@@ -19,16 +19,19 @@ jobs:
         uses: docker/setup-buildx-action@v3
         id: buildx
 
-      # BuildKit build with layer caching via BoringCache
-      - uses: boringcache/buildkit-action@v1
+      # BuildKit build with layer caching via boringcache/one.
+      - uses: boringcache/one@v1
         with:
-          workspace: boringcache/actions
+          setup: none
+          mode: buildkit
+          workspace: boringcache/actions-demos
           buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: myapp
           tags: ${{ github.sha }}
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       - run: docker images
 
@@ -42,16 +45,19 @@ jobs:
         uses: docker/setup-buildx-action@v3
         id: buildx
 
-      - uses: boringcache/buildkit-action@v1
+      - uses: boringcache/one@v1
         with:
-          workspace: boringcache/actions
+          setup: none
+          mode: buildkit
+          workspace: boringcache/actions-demos
           buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           dockerfile: Dockerfile.production
           image: myapp
           tags: prod
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
   # Build and export to OCI tarball
   oci-export:
@@ -63,15 +69,18 @@ jobs:
         uses: docker/setup-buildx-action@v3
         id: buildx
 
-      - uses: boringcache/buildkit-action@v1
+      - uses: boringcache/one@v1
         with:
-          workspace: boringcache/actions
+          setup: none
+          mode: buildkit
+          workspace: boringcache/actions-demos
           buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: myapp
           output: type=oci,dest=image.tar
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       - run: ls -la image.tar
 
@@ -85,9 +94,11 @@ jobs:
         uses: docker/setup-buildx-action@v3
         id: buildx
 
-      - uses: boringcache/buildkit-action@v1
+      - uses: boringcache/one@v1
         with:
-          workspace: boringcache/actions
+          setup: none
+          mode: buildkit
+          workspace: boringcache/actions-demos
           buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: myapp
@@ -96,7 +107,8 @@ jobs:
             NODE_ENV=production
             VERSION=${{ github.sha }}
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
   # Multi-stage build with target
   multi-stage:
@@ -109,28 +121,34 @@ jobs:
         id: buildx
 
       # Build only the builder stage
-      - uses: boringcache/buildkit-action@v1
+      - uses: boringcache/one@v1
         with:
-          workspace: boringcache/actions
+          setup: none
+          mode: buildkit
+          workspace: boringcache/actions-demos
           buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: myapp-builder
           tags: ${{ github.sha }}
           target: builder
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       # Build the final stage
-      - uses: boringcache/buildkit-action@v1
+      - uses: boringcache/one@v1
         with:
-          workspace: boringcache/actions
+          setup: none
+          mode: buildkit
+          workspace: boringcache/actions-demos
           buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: myapp
           tags: ${{ github.sha }}
           target: runtime
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
   # Push to registry (disabled in demo - requires package write permissions)
   # To enable: grant write:packages permission and uncomment push: true
@@ -153,13 +171,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: boringcache/buildkit-action@v1
+      - uses: boringcache/one@v1
         with:
-          workspace: boringcache/actions
+          setup: none
+          mode: buildkit
+          workspace: boringcache/actions-demos
           buildkit-host: docker-container://buildx_buildkit_${{ steps.buildx.outputs.name }}0
           context: .
           image: ghcr.io/${{ github.repository }}
           tags: ${{ github.sha }}
           push: false  # Set to true when package permissions are configured
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}

@@ -1,5 +1,5 @@
-# Example: Setup BoringCache CLI directly
-# Use this when you need direct CLI access for custom workflows
+# Example: Install only the BoringCache CLI
+# Use boringcache/one as a CLI bootstrap step with setup: none
 
 name: Setup CLI
 
@@ -17,8 +17,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Install BoringCache CLI
-      - uses: boringcache/setup-boringcache@v1
+      # Install the CLI without enabling any cache mode.
+      - uses: boringcache/one@v1
+        with:
+          setup: none
+          workspace: boringcache/actions-demos
 
       # CLI is now available
       - run: boringcache --version
@@ -32,9 +35,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: boringcache/setup-boringcache@v1
+      - uses: boringcache/one@v1
         with:
-          version: v1.1.0  # Pin to specific version
+          setup: none
+          workspace: boringcache/actions-demos
+          cli-version: v1.1.0  # Pin to specific version
 
       - run: boringcache --version
 
@@ -46,7 +51,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: boringcache/setup-boringcache@v1
+      - uses: boringcache/one@v1
+        with:
+          setup: none
+          workspace: boringcache/actions-demos
 
       # Use CLI directly for custom caching logic
       - name: Restore dependencies
@@ -78,7 +86,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: boringcache/setup-boringcache@v1
+      - uses: boringcache/one@v1
+        with:
+          setup: none
+          workspace: boringcache/actions-demos
 
       - run: boringcache --version
       - run: boringcache workspaces

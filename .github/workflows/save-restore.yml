@@ -1,7 +1,7 @@
-# Example: Granular cache control with save/restore
-# Use this pattern when you need precise control over cache timing
+# Example: Job lifecycle control with boringcache/one
+# boringcache/one restores at step start and saves in the post step
 
-name: Save/Restore Pattern
+name: Lifecycle Pattern
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
   pull_request:
 
 jobs:
-  # Pattern 1: Restore before install, save after
+  # Pattern 1: Restore before install, save automatically after the job step
   restore-and-save:
     runs-on: ubuntu-latest
     steps:
@@ -19,27 +19,20 @@ jobs:
         with:
           node-version: '20'
 
-      # Restore cache first
-      - uses: boringcache/restore@v1
+      # Restore now, save automatically in the post step.
+      - uses: boringcache/one@v1
         with:
-          workspace: boringcache/actions
+          setup: none
+          workspace: boringcache/actions-demos
           entries: deps:node_modules
           verbose: true  # Show detailed cache operations
+          exclude: "*.log"  # Exclude log files from cache
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       - run: npm ci
       - run: npm test
-
-      # Save cache after successful build
-      - uses: boringcache/save@v1
-        with:
-          workspace: boringcache/actions
-          entries: deps:node_modules
-          verbose: true
-          exclude: "*.log"  # Exclude log files from cache
-        env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
 
   # Pattern 2: Build artifacts shared across jobs
   build:
@@ -54,13 +47,15 @@ jobs:
       - run: npm ci
       - run: npm run build
 
-      # Save build output for other jobs
-      - uses: boringcache/save@v1
+      # Save build output in the post step after npm run build.
+      - uses: boringcache/one@v1
         with:
-          workspace: boringcache/actions
+          setup: none
+          workspace: boringcache/actions-demos
           entries: build-${{ github.sha }}:dist
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
   deploy:
     needs: build
@@ -68,13 +63,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Restore build output from previous job
-      - uses: boringcache/restore@v1
+      # Restore the build output and skip save by omitting a save-capable token.
+      - uses: boringcache/one@v1
         with:
-          workspace: boringcache/actions
+          setup: none
+          workspace: boringcache/actions-demos
           entries: build-${{ github.sha }}:dist
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
 
       - run: ls -la dist/
       # - run: deploy dist/
@@ -89,9 +85,10 @@ jobs:
         with:
           node-version: '20'
 
-      # Restore with actions/cache compatible inputs
-      - uses: boringcache/restore@v1
+      # Keep actions/cache-compatible inputs and let one handle restore + post-save.
+      - uses: boringcache/one@v1
         with:
+          setup: none
           path: |
             node_modules
             ~/.npm
@@ -99,17 +96,8 @@ jobs:
           restore-keys: |
             deps-${{ runner.os }}-
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       - run: npm ci
       - run: npm test
-
-      # Save with actions/cache compatible inputs
-      - uses: boringcache/save@v1
-        with:
-          path: |
-            node_modules
-            ~/.npm
-          key: deps-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-        env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}

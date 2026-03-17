@@ -1,7 +1,7 @@
 # Example: Drop-in replacement for actions/cache
-# This is the simplest migration path from actions/cache
+# This is the simplest migration path to boringcache/one
 
-name: CI with BoringCache
+name: CI with boringcache/one
 
 on:
   push:
@@ -19,16 +19,18 @@ jobs:
           node-version: '20'
 
       # Drop-in replacement for actions/cache
-      # Just change actions/cache@v4 to boringcache/action@v1
-      - uses: boringcache/action@v1
+      # Keep path/key/restore-keys and swap the action name.
+      - uses: boringcache/one@v1
         with:
+          setup: none
           path: node_modules
           key: deps-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             deps-${{ runner.os }}-
           verbose: true  # Show detailed cache operations
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       - run: npm ci
       - run: npm test
@@ -45,15 +47,17 @@ jobs:
           node-version: '20'
 
       # Workspace format: cleaner syntax for multiple cache entries
-      - uses: boringcache/action@v1
+      - uses: boringcache/one@v1
         with:
-          workspace: boringcache/actions
+          setup: none
+          workspace: boringcache/actions-demos
           entries: |
             deps:node_modules
             build:.next
           exclude: "*.log"  # Exclude log files from cache
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       - run: npm ci
       - run: npm test

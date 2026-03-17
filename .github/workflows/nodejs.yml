@@ -1,5 +1,5 @@
-# Example: Node.js with automatic caching
-# Zero-config Node.js setup with npm/yarn/pnpm caching
+# Example: Node.js with the node preset
+# Install Node via mise and cache package-manager state with boringcache/one
 
 name: Node.js
 
@@ -9,22 +9,20 @@ on:
   pull_request:
 
 jobs:
-  # Zero-config: automatic Node.js setup + caching
+  # Automatic Node.js setup + caching
   zero-config:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # Automatically:
-      # - Installs Node.js via mise
-      # - Caches Node.js installation
-      # - Caches node_modules
-      - uses: boringcache/nodejs-action@v1
+      - uses: boringcache/one@v1
         with:
-          node-version: '20'
-          workspace: boringcache/actions
+          preset: node
+          tools: "node@20"
+          workspace: boringcache/actions-demos
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       - run: npm ci
       - run: npm test
@@ -35,12 +33,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: boringcache/nodejs-action@v1
+      - uses: boringcache/one@v1
         with:
-          node-version: '20'
-          workspace: boringcache/actions
+          preset: node
+          tools: "node@20"
+          workspace: boringcache/actions-demos
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       - run: yarn install
       - run: yarn test
@@ -51,12 +51,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: boringcache/nodejs-action@v1
+      - uses: boringcache/one@v1
         with:
-          node-version: '20'
-          workspace: boringcache/actions
+          preset: node
+          tools: "node@20"
+          workspace: boringcache/actions-demos
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       - run: npm install -g pnpm
       - run: pnpm install
@@ -71,13 +73,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: boringcache/nodejs-action@v1
+      - uses: boringcache/one@v1
         with:
-          node-version: ${{ matrix.node }}
-          workspace: boringcache/actions
+          preset: node
+          tools: node@${{ matrix.node }}
+          workspace: boringcache/actions-demos
           verbose: true  # Show detailed cache operations
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       - run: node --version
       - run: npm ci
@@ -89,12 +93,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: boringcache/nodejs-action@v1
+      - uses: boringcache/one@v1
         with:
-          node-version: '20'
+          preset: node
+          tools: "node@20"
           workspace: my-org/my-project  # Custom workspace
         env:
-          BORINGCACHE_API_TOKEN: ${{ secrets.BORINGCACHE_API_TOKEN }}
+          BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+          BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
       - run: npm ci
       - run: npm test

@@ -1,40 +1,40 @@
-# BoringCache Actions Demos
+# BoringCache Action Demos
 
-Example workflows for the published BoringCache GitHub Actions.
+Example workflows for `boringcache/one@v1`.
 
 ## What this repo is for
 
 Use these workflows as a starting point when you want a working example before you shape the YAML around your own build.
 
-## Available actions
+## Available examples
 
-| Action | Description | Example |
+| Pattern | Description | Example |
 |--------|-------------|---------|
-| [boringcache/action](https://github.com/boringcache/action) | Cache any directory (drop-in for `actions/cache`) | [ci.yml](.github/workflows/ci.yml) |
-| [boringcache/save](https://github.com/boringcache/save) | Save directories at a specific workflow point | [save-restore.yml](.github/workflows/save-restore.yml) |
-| [boringcache/restore](https://github.com/boringcache/restore) | Restore directories at a specific workflow point | [save-restore.yml](.github/workflows/save-restore.yml) |
-| [boringcache/setup-boringcache](https://github.com/boringcache/setup-boringcache) | Install the BoringCache CLI | [setup-cli.yml](.github/workflows/setup-cli.yml) |
-| [boringcache/nodejs-action](https://github.com/boringcache/nodejs-action) | Setup Node.js + cache node_modules and build tools | [nodejs.yml](.github/workflows/nodejs.yml) |
-| [boringcache/ruby-action](https://github.com/boringcache/ruby-action) | Setup Ruby + cache Bundler gems | [ruby.yml](.github/workflows/ruby.yml) |
-| [boringcache/rust-action](https://github.com/boringcache/rust-action) | Setup Rust + cache Cargo registry and target | [rust.yml](.github/workflows/rust.yml) |
-| [boringcache/docker-action](https://github.com/boringcache/docker-action) | Cache Docker BuildKit layers via OCI proxy | [docker.yml](.github/workflows/docker.yml) |
-| [boringcache/buildkit-action](https://github.com/boringcache/buildkit-action) | Cache BuildKit layers for raw buildctl builds | [buildkit.yml](.github/workflows/buildkit.yml) |
+| Archive compatibility | Swap `actions/cache` for `boringcache/one` and keep `path` / `key` inputs | [ci.yml](.github/workflows/ci.yml) |
+| Job lifecycle | Let `boringcache/one` restore at step start and save in the post step | [save-restore.yml](.github/workflows/save-restore.yml) |
+| Node preset | Install Node with `mise` and cache package-manager state | [nodejs.yml](.github/workflows/nodejs.yml) |
+| Ruby preset | Install Ruby with `mise` and cache Bundler state | [ruby.yml](.github/workflows/ruby.yml) |
+| Rust mode | Use `mode: rust-sccache` for toolchain, cargo, target, and sccache flows | [rust.yml](.github/workflows/rust.yml) |
+| Docker mode | Use `mode: docker` for `docker buildx build` orchestration | [docker.yml](.github/workflows/docker.yml) |
+| BuildKit mode | Use `mode: buildkit` for direct `buildctl` flows | [buildkit.yml](.github/workflows/buildkit.yml) |
+| CLI bootstrap | Install only the CLI with `setup: none` | [setup-cli.yml](.github/workflows/setup-cli.yml) |
 
 ## Quick start
 
 1. Create a restore token and a save token in [boringcache.com](https://boringcache.com)
 2. Add `BORINGCACHE_RESTORE_TOKEN` and `BORINGCACHE_SAVE_TOKEN` to your repository secrets
-3. Copy any workflow from this repo and adapt to your needs
+3. Copy any workflow from this repo and adapt the `workspace`, tags, entries, and tools to your project
 
 ## Common patterns
 
 ### Pattern 1: Drop-in cache
 
-Replace `actions/cache` with `boringcache/action`:
+Replace `actions/cache` with `boringcache/one`:
 
 ```yaml
-- uses: boringcache/action@v1
+- uses: boringcache/one@v1
   with:
+    setup: none
     path: node_modules
     key: deps-${{ hashFiles('package-lock.json') }}
   env:
@@ -47,8 +47,9 @@ Replace `actions/cache` with `boringcache/action`:
 Use workspace format for multi-project caching:
 
 ```yaml
-- uses: boringcache/action@v1
+- uses: boringcache/one@v1
   with:
+    setup: none
     workspace: my-org/my-project
     entries: deps:node_modules,build:.next
   env:
@@ -56,53 +57,54 @@ Use workspace format for multi-project caching:
     BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 ```
 
-### Pattern 3: Save and restore separately
+### Pattern 3: Restore now, save automatically later
 
-Separate restore and save steps:
+`boringcache/one` restores at step start and saves in the post step:
 
 ```yaml
-- uses: boringcache/restore@v1
+- uses: boringcache/one@v1
   with:
+    setup: none
     workspace: my-org/my-project
     entries: deps:node_modules
   env:
     BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
+    BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
 - run: npm ci
-
-- uses: boringcache/save@v1
-  with:
-    workspace: my-org/my-project
-    entries: deps:node_modules
-  env:
-    BORINGCACHE_SAVE_TOKEN: ${{ secrets.BORINGCACHE_SAVE_TOKEN }}
 ```
 
-### Pattern 4: Language-specific defaults
+### Pattern 4: Presets and modes
 
-Use language actions for automatic setup + caching:
+Use `preset` or `mode` to describe the workflow shape:
 
 ```yaml
 # Node.js
-- uses: boringcache/nodejs-action@v1
+- uses: boringcache/one@v1
   with:
-    node-version: '20'
+    preset: node
+    tools: "node@20"
   env:
     BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
     BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
 # Ruby
-- uses: boringcache/ruby-action@v1
+- uses: boringcache/one@v1
   with:
-    ruby-version: '3.3'
+    preset: ruby
+    tools: "ruby@3.3"
   env:
     BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
     BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
 
 # Rust
-- uses: boringcache/rust-action@v1
+- uses: boringcache/one@v1
   with:
+    setup: none
+    mode: rust-sccache
     toolchain: stable
+    sccache: true
+    sccache-mode: proxy
   env:
     BORINGCACHE_RESTORE_TOKEN: ${{ secrets.BORINGCACHE_RESTORE_TOKEN }}
     BORINGCACHE_SAVE_TOKEN: ${{ github.event_name == 'pull_request' && '' || secrets.BORINGCACHE_SAVE_TOKEN }}
